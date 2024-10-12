@@ -56,7 +56,6 @@ router.get("/:contactId", async (req, res, next) => {
 });
 
 router.post("/", async (req, res, next) => {
-  // const contact = req.body;
   const { error, value } = contactSchema.validate(req.body);
 
   if (error) {
@@ -100,8 +99,6 @@ router.delete("/:contactId", async (req, res, next) => {
 
 router.put("/:contactId", async (req, res, next) => {
   const { contactId } = req.params;
-  // const body = req.body;
-
   const { error, value } = contactSchema.validate(req.body);
 
   if (error) {
