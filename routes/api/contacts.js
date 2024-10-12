@@ -1,5 +1,5 @@
 const express = require("express");
-
+const Joi = require("joi");
 const {
   listContacts,
   getContactById,
@@ -9,6 +9,14 @@ const {
 } = require("../../models/contacts");
 
 const router = express.Router();
+
+const contactSchema = Joi.object({
+  name: Joi.string().min(3).max(25).required(),
+  email: Joi.string().email().required(),
+  phone: Joi.string()
+    .pattern(/^[0-9]+$/)
+    .required(),
+});
 
 router.get("/", async (req, res, next) => {
   try {
@@ -48,9 +56,19 @@ router.get("/:contactId", async (req, res, next) => {
 });
 
 router.post("/", async (req, res, next) => {
-  const contact = req.body;
+  // const contact = req.body;
+  const { error, value } = contactSchema.validate(req.body);
+
+  if (error) {
+    return res.status(400).json({
+      status: "error",
+      code: 400,
+      message: error.details[0].message,
+    });
+  }
+
   try {
-    const data = await addContact(contact);
+    const data = await addContact(value);
     res.status(200).json({
       status: "success",
       code: 200,
@@ -82,9 +100,20 @@ router.delete("/:contactId", async (req, res, next) => {
 
 router.put("/:contactId", async (req, res, next) => {
   const { contactId } = req.params;
-  const body = req.body;
+  // const body = req.body;
+
+  const { error, value } = contactSchema.validate(req.body);
+
+  if (error) {
+    return res.status(400).json({
+      status: "error",
+      code: 400,
+      message: error.details[0].message,
+    });
+  }
+
   try {
-    const data = await updateContact(contactId, body);
+    const data = await updateContact(contactId, value);
     res.status(200).json({
       status: "success",
       code: 200,
