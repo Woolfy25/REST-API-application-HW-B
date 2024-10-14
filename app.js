@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+const passport = require("passport");
+
+require("./middlewares/passportConfig");
 
 const corsOptions = require("./cors");
 const contactsRouter = require("./routes/routes");
@@ -11,7 +14,9 @@ app.use(express.json());
 app.use(cors(corsOptions));
 app.use(morgan("tiny"));
 
-app.use("/api/contacts", contactsRouter);
+app.use(passport.initialize());
+
+app.use("/api", contactsRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });

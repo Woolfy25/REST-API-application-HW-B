@@ -1,8 +1,12 @@
 const services = require("../services/services");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
-const get = async (req, res, next) => {
+const secret = process.env.SECRET;
+
+const getAccount = async (req, res, next) => {
   try {
-    const results = await services.getAllUsers();
+    const results = await services.getAllAccounts();
     res.json({
       status: "Succes",
       code: 200,
@@ -16,32 +20,58 @@ const get = async (req, res, next) => {
   }
 };
 
-const create = async (req, res, next) => {
+const createAccount = async (req, res, next) => {
   try {
-    const { name, email, phone, favorite } = req.body;
-    const result = await services.createContact({
-      name,
+    const { email, password } = req.body;
+    const result = await services.createAccount({
       email,
-      phone,
-      favorite,
+      password,
     });
+
+    const payload = { email: result.email };
+    const token = jwt.sign(payload, secret, { expiresIn: "1h" });
+
     res.status(201).json({
       status: "Succes",
       code: 201,
-      data: result,
+      data: { email: result.email, token },
     });
   } catch (error) {
     res.status(404).json({
-      status: "Error",
+      status: error.message,
       code: 404,
     });
   }
 };
 
-const remove = async (req, res, next) => {
+const loginAccount = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    const result = await services.checkUserDB({
+      email,
+      password,
+    });
+
+    const payload = { email: result.email };
+    const token = jwt.sign(payload, secret, { expiresIn: "1h" });
+
+    res.status(201).json({
+      status: "Succes",
+      code: 201,
+      data: { email: result.email, token },
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: error.message,
+      code: 404,
+    });
+  }
+};
+
+const removeAccount = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    await services.deleteContact(contactId);
+    await services.deleteAccount(contactId);
     res.status(204).json({
       status: "Succes",
       code: 204,
@@ -54,11 +84,11 @@ const remove = async (req, res, next) => {
   }
 };
 
-const update = async (req, res, next) => {
+const updateAccount = async (req, res, next) => {
   try {
     const { contactId } = req.params;
     const updateData = req.body;
-    const result = await services.updateContact(contactId, updateData);
+    const result = await services.updateAccount(contactId, updateData);
     res.status(201).json({
       status: "Succes",
       code: 201,
@@ -72,9 +102,73 @@ const update = async (req, res, next) => {
   }
 };
 
+const getContacts = async (req, res, next) => {
+  try {
+    const result = await services.getAllContacts();
+    res.json({
+      status: "Succes",
+      code: 201,
+      data: result,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: error.message,
+      code: 404,
+    });
+  }
+};
+
+const createContacts = async (req, res, next) => {
+  try {
+    const { name, email, phone, favorite } = req.body;
+    const result = await services.addContact({ name, email, phone, favorite });
+  } catch (error) {
+    res.status(404).json({
+      status: error.message,
+      code: 404,
+    });
+  }
+};
+
+const updateContacts = async (req, res, next) => {
+  try {
+    const { contactId } = req.params;
+    const updateData = req.body;
+    const result = await services.updateContact(contactId, updateData);
+    res.status(201).json({
+      status: "Succes",
+      code: 201,
+      data: result,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: error.message,
+      code: 404,
+    });
+  }
+};
+
+const removeContact = async (req, res, next) => {
+  try {
+    const { contactId } = req.params;
+    await services.deleteContact(contactId);
+    res.status(204).json();
+  } catch (error) {
+    res.status(404).json({
+      status: error.message,
+      code: 404,
+    });
+  }
+};
+
 module.exports = {
-  get,
-  create,
-  remove,
-  update,
+  getAccount,
+  createAccount,
+  loginAccount,
+  removeAccount,
+  updateAccount,
+  getContacts,
+  createContacts,
+  updateContacts,
+  removeContact,
 };
