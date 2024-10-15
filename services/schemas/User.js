@@ -10,6 +10,15 @@ const user = new Schema({
     minLength: 2,
   },
   password: { type: String, require: [true], minLength: 2 },
+  subscription: {
+    type: String,
+    subType: ["starter", "pro", "business"],
+    default: "starter",
+  },
+  token: {
+    type: String,
+    default: null,
+  },
 });
 
 user.methods.setPassword = function (password) {

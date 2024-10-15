@@ -4,16 +4,20 @@ const {
   getAccount,
   createAccount,
   loginAccount,
+  logOutAccount,
   removeAccount,
   updateAccount,
   getContacts,
   createContacts,
   updateContacts,
   removeContact,
+  getCurrentUser,
 } = require("../controllers/controler");
 const { auth } = require("../middlewares/auth");
 
 router.get("/account", getAccount);
+router.get("/account/current", auth, getCurrentUser);
+router.get("/account/logout", auth, logOutAccount);
 router.post("/account/register", createAccount);
 router.post("/account/login", loginAccount);
 router.put("/account/:contactId", auth, updateAccount);
