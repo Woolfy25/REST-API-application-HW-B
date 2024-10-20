@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 const passport = require("passport");
+const path = require("path");
 
 require("./middlewares/passportConfig");
 
@@ -13,6 +14,8 @@ const app = express();
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(morgan("tiny"));
+
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use(passport.initialize());
 

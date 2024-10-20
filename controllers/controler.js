@@ -1,6 +1,9 @@
 const services = require("../services/services");
 // const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const Jimp = require("jimp");
+const fs = require("fs");
+const path = require("path");
 
 const secret = process.env.SECRET;
 
@@ -266,6 +269,53 @@ const removeContact = async (req, res, next) => {
   }
 };
 
+const uploadAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(404).json({
+        status: "Nu exista fisierul incarcat!",
+      });
+    }
+
+    const uniqueFilename = `${req.user._id}-${Date.now()}${path.extname(
+      req.file.originalname
+    )}`;
+
+    const destinationPath = path.join(
+      __dirname,
+      `../public/avatars/${uniqueFilename}`
+    );
+
+    await Jimp.read(req.file.path)
+      .then((image) => {
+        return image
+          .resize(350, 350)
+          .quality(60)
+          .greyscale()
+          .writeAsync(destinationPath);
+      })
+      .then(() => {
+        fs.unlinkSync(req.file.path);
+      })
+      .catch((error) => {
+        throw error;
+      });
+
+    // fs.renameSync(req.file.path, destinationPath);
+
+    req.user.avatarUrl = `/avatars/${uniqueFilename}`;
+
+    await req.user.save();
+
+    res.status(200).json({ avatarUrl: req.user.avatarUrl });
+  } catch (error) {
+    res.status(404).json({
+      status: error.message,
+      code: 404,
+    });
+  }
+};
+
 module.exports = {
   getAccount,
   createAccount,
@@ -278,4 +328,5 @@ module.exports = {
   updateContacts,
   removeContact,
   getCurrentUser,
+  uploadAvatar,
 };

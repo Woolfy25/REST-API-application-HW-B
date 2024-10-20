@@ -12,8 +12,35 @@ const {
   updateContacts,
   removeContact,
   getCurrentUser,
+  uploadAvatar,
 } = require("../controllers/controler");
 const { auth } = require("../middlewares/auth");
+const multer = require("multer");
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./public/avatars/");
+  },
+  filename: function (req, file, cb) {
+    cb(
+      null,
+      file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+    );
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
+const upload = multer({ storage: storage, fileFilter: fileFilter });
+
+router.patch("/account/avatars", auth, upload.single("avatar"), uploadAvatar);
 
 router.get("/account", getAccount);
 router.get("/account/current", auth, getCurrentUser);

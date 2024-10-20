@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const gravatar = require("gravatar");
 
 const Schema = mongoose.Schema;
 
@@ -15,6 +16,10 @@ const user = new Schema({
     subType: ["starter", "pro", "business"],
     default: "starter",
   },
+  avatarUrl: {
+    type: String,
+    minLength: 2,
+  },
   token: {
     type: String,
     default: null,
@@ -28,6 +33,21 @@ user.methods.setPassword = function (password) {
 user.methods.validPassword = function (password) {
   return bcrypt.compareSync(password, this.password);
 };
+
+user.pre("save", function (next) {
+  if (!this.avatarUrl) {
+    this.avatarUrl = gravatar.url(
+      this.email,
+      {
+        s: 200,
+        r: "pg",
+        d: "identicon",
+      },
+      true
+    );
+  }
+  next();
+});
 
 const User = mongoose.model("User", user, "users");
 
