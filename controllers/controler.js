@@ -316,6 +316,23 @@ const uploadAvatar = async (req, res, next) => {
   }
 };
 
+const verifyEmail = async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+
+    await services.verifyEmailAddress(verificationToken);
+    res.status(200).json({
+      message: "Email verificat cu success!",
+      code: 200,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: error.message,
+      code: 404,
+    });
+  }
+};
+
 module.exports = {
   getAccount,
   createAccount,
@@ -329,4 +346,5 @@ module.exports = {
   removeContact,
   getCurrentUser,
   uploadAvatar,
+  verifyEmail,
 };

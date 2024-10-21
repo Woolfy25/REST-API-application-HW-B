@@ -1,9 +1,12 @@
 const User = require("./schemas/User");
 const Contacts = require("./schemas/Contacts");
 const jwt = require("jsonwebtoken");
+const nanoid = require("nanoid");
+const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 const secret = process.env.SECRET;
+const pass = process.env.PASS;
 
 const getAllAccounts = async () => {
   return User.find();
@@ -32,7 +35,31 @@ const createAccount = async ({ email, password }) => {
       throw new Error("Aceste email exista deja!");
     }
 
-    const newUser = User({ email });
+    const codUnicDeVerificare = nanoid();
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "ramonspuci@gmail.com",
+        pass: pass,
+      },
+    });
+
+    const mailOptions = {
+      from: "ramonspuci@gmail.com",
+      to: "ramonciutre7@gmail.com",
+      subject: "Email de verificare cont",
+      text: `Codul tau de verificare este ${codUnicDeVerificare}, http://localhost:3000/api/account/verify/${codUnicDeVerificare}`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return console.log(error);
+      }
+      console.log("Email sent: " + info.response);
+    });
+
+    const newUser = User({ email, verificationToken: codUnicDeVerificare });
     newUser.setPassword(password);
 
     const savedUser = await newUser.save();
@@ -58,6 +85,10 @@ const checkUserDB = async ({ email, password }) => {
     const user = await User.findOne({ email });
     if (!user || !user.validPassword(password)) {
       throw new Error("Email sau parola gresita!");
+    }
+
+    if (!user.verify) {
+      throw new Error("Trebuie sa iti verifici contul!");
     }
     // if (!user) {
     //   throw new Error("Aceste email nu exista!");
@@ -181,6 +212,24 @@ const deleteContact = async (contactId, ownerId) => {
   }
 };
 
+const verifyEmailAddress = async (verificationToken) => {
+  try {
+    const update = { verify: true, verificationToken: null };
+
+    const result = await User.findOneAndUpdate(
+      {
+        verificationToken: verificationToken,
+      },
+      { $set: update },
+      { new: true }
+    );
+
+    if (!result) throw new Error("Userul nu exista!");
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   getAllAccounts,
   createAccount,
@@ -192,4 +241,5 @@ module.exports = {
   addContact,
   updateContact,
   deleteContact,
+  verifyEmailAddress,
 };
