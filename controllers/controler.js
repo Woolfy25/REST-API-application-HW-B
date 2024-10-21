@@ -333,6 +333,29 @@ const verifyEmail = async (req, res, next) => {
   }
 };
 
+const verifyResend = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!req.body) {
+      return res.status(400).json({
+        message: "missing required field email",
+        status: 400,
+      });
+    }
+
+    await services.verifyEmailResend(email);
+    res.status(200).json({
+      message: "Verification email sent!",
+      code: 200,
+    });
+  } catch (error) {
+    res.status(404).json({
+      status: error.message,
+      code: 404,
+    });
+  }
+};
+
 module.exports = {
   getAccount,
   createAccount,
@@ -347,4 +370,5 @@ module.exports = {
   getCurrentUser,
   uploadAvatar,
   verifyEmail,
+  verifyResend,
 };

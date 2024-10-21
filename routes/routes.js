@@ -14,6 +14,7 @@ const {
   getCurrentUser,
   uploadAvatar,
   verifyEmail,
+  verifyResend,
 } = require("../controllers/controler");
 const { auth } = require("../middlewares/auth");
 const multer = require("multer");
@@ -43,6 +44,7 @@ const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 router.patch("/account/avatars", auth, upload.single("avatar"), uploadAvatar);
 router.get("/account/verify/:verificationToken", verifyEmail);
+router.post("/account/verify/", verifyResend);
 
 router.get("/account", getAccount);
 router.get("/account/current", auth, getCurrentUser);

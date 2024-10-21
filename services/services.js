@@ -230,6 +230,41 @@ const verifyEmailAddress = async (verificationToken) => {
   }
 };
 
+const verifyEmailResend = async (email) => {
+  try {
+    const user = await User.findOne({ email });
+    if (!user) throw new Error("Userul nu exista!");
+    if (user.verify === true)
+      throw new Error("Verification has already been passed!");
+
+    const codUnicDeVerificare = user.verificationToken;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "ramonspuci@gmail.com",
+        pass: pass,
+      },
+    });
+
+    const mailOptions = {
+      from: "ramonspuci@gmail.com",
+      to: "ramonciutre7@gmail.com",
+      subject: "Email de verificare cont",
+      text: `Codul tau de verificare este ${codUnicDeVerificare}, http://localhost:3000/api/account/verify/${codUnicDeVerificare}`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return console.log(error);
+      }
+      console.log("Email sent: " + info.response);
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   getAllAccounts,
   createAccount,
@@ -242,4 +277,5 @@ module.exports = {
   updateContact,
   deleteContact,
   verifyEmailAddress,
+  verifyEmailResend,
 };
